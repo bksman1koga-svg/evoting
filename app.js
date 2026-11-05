@@ -42,7 +42,7 @@ x.voted=true;x.pilih=id;x.waktu=Date.now();save();render()}
 
 /* ---------- Admin ---------- */
 const MENU=[['dash','📊','Dashboard'],['paslon','🧑‍🤝‍🧑','Data Paslon'],['siswa','🎓','Data Siswa'],['guru','👩‍🏫','Data Guru'],['riwayat','🕘','Riwayat Pemilih'],['grafik','📈','Grafik'],['set','⚙️','Pengaturan']];
-function admin(){return `<nav class="side"><div class="brand">${logo()}<b>E-voting</b></div>${MENU.map(m=>`<a class="${S.page==m[0]?'on':''}" onclick="S.page='${m[0]}';S.q='';S.kelas='';S.edit=null;render()">${m[1]} ${m[2]}</a>`).join('')}<a onclick="out()">🚪 Keluar</a></nav><main>${PAGES[S.page]()}</main>`}
+function admin(){return `<nav class="side"><div class="brand">${logo()}<b>E-voting</b></div>${MENU.map(m=>`<a class="${S.page==m[0]?'on':''}" onclick="S.page='${m[0]}';S.q='';S.kelas='';S.edit=null;render()">${m[1]} ${m[2]}</a>`).join('')}<a onclick="out()">🚪 Keluar</a><div class="credit">Designed by:<b>Akhmad Khafidz K., S.Pd., Gr.</b>Developed by:<b>Claude</b></div></nav><main>${PAGES[S.page]()}</main>`}
 
 const PAGES={
 dash(){const a=[...db.siswa.map(x=>({...x,t:'Siswa'})),...db.guru.map(x=>({...x,t:'Guru'}))],v=a.filter(x=>x.voted),rec=[...v].sort((a,b)=>b.waktu-a.waktu).slice(0,8);
@@ -52,12 +52,12 @@ paslon(){const e=db.paslon.find(p=>p.id==S.edit)||{};
 return `<h2>Data Paslon</h2><div class="card form"><input id="pn" placeholder="No. urut" value="${esc(e.no)}"><input id="pk" placeholder="Nama Ketua" value="${esc(e.ketua)}"><input id="pw2" placeholder="Nama Wakil Ketua" value="${esc(e.wakil)}">
 <label>Foto paslon (JPG/PNG)<input type="file" accept="image/jpeg,image/png" onchange="pic(this,'foto',500,'image/jpeg')"></label><textarea id="pv" placeholder="Visi">${esc(e.visi)}</textarea><textarea id="pm" placeholder="Misi (satu poin per baris)">${esc(e.misi)}</textarea>
 <button class="btn" onclick="savePas()">${e.id?'Simpan perubahan':'Tambah paslon'}</button></div>
-<div class="grid">${db.paslon.map(p=>`<div class="card pc"><span class="no">${esc(p.no)}</span>${p.foto?`<img src="${p.foto}" alt="">`:''}<h3>${esc(p.ketua)} &amp; ${esc(p.wakil)}</h3><p class="pre">${esc(p.visi)}</p><div class="bar"><button class="ghost" onclick="S.edit=${p.id};render()">Ubah</button><button class="ghost" onclick="delPas(${p.id})">Hapus</button></div></div>`).join('')}</div>`},
+${db.paslon.length?'<div class="bar" style="margin-bottom:1rem"><button class="ghost" onclick="clrPas()">Hapus semua</button></div>':''}<div class="grid">${db.paslon.map(p=>`<div class="card pc"><span class="no">${esc(p.no)}</span>${p.foto?`<img src="${p.foto}" alt="">`:''}<h3>${esc(p.ketua)} &amp; ${esc(p.wakil)}</h3><p class="pre">${esc(p.visi)}</p><div class="bar"><button class="ghost" onclick="S.edit=${p.id};render()">Ubah</button><button class="ghost" onclick="delPas(${p.id})">Hapus</button></div></div>`).join('')}</div>`},
 siswa:()=>dp('siswa'),guru:()=>dp('guru'),
 riwayat(){const t=S.rk,L=t=='siswa',d=db[t].filter(x=>x.voted&&(!S.kelas||x.kelas==S.kelas)).sort((a,b)=>a.waktu-b.waktu),s=db.school;
 return `<div class="noprint"><h2>Riwayat Pemilih</h2><div class="card bar"><div class="tabs"><button class="${L?'on':''}" onclick="S.rk='siswa';render()">Riwayat Siswa</button><button class="${!L?'on':''}" onclick="S.rk='guru';S.kelas='';render()">Riwayat Guru</button></div>${L?ksel():''}<button class="btn" onclick="print()">🖨️ Cetak PDF</button></div></div>
 <div class="card tw"><div class="kop">${logo()}<div><b>${esc(s.nama)}</b><br>Riwayat Pemilih ${L?'Siswa'+(S.kelas?' Kelas '+esc(S.kelas):''):'Guru/Tendik'} - Pemilihan OSIS</div></div>
-<table><tr><th>No</th><th>${L?'NIS':'NIP'}</th><th>Nama</th>${L?'<th>Kelas</th>':''}<th>Waktu memilih</th></tr>${d.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.id)}</td><td>${esc(x.nama)}</td>${L?`<td>${esc(x.kelas)}</td>`:''}<td>${tm(x.waktu)}</td></tr>`).join('')||'<tr><td colspan="5">Belum ada data.</td></tr>'}</table>
+<table><tr><th>No</th><th>${L?'NIS':'NIP'}</th><th>Nama</th>${L?'<th>Kelas</th>':''}<th>Waktu memilih</th><th>Paslon Pilihan</th></tr>${d.map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.id)}</td><td>${esc(x.nama)}</td>${L?`<td>${esc(x.kelas)}</td>`:''}<td>${tm(x.waktu)}</td><td>${esc(pasNama(x.pilih))}</td></tr>`).join('')||`<tr><td colspan="${L?6:5}">Belum ada data.</td></tr>`}</table>
 <div class="ttd"><div>Pembina OSIS<br><br><br><br><b>${esc(s.pembina)}</b><br>NIP. ${esc(s.nipPembina)}</div><div>Kepala Sekolah<br><br><br><br><b>${esc(s.kepsek)}</b><br>NIP. ${esc(s.nipKepsek)}</div></div></div>`},
 grafik(){const all=voters(),r=db.paslon.map(p=>({p,n:all.filter(x=>x.pilih===p.id).length})),s=r.reduce((a,b)=>a+b.n,0);
 return `<h2>Grafik Perolehan Suara</h2><div class="card">${r.map(({p,n})=>{const pc=s?(n/s*100).toFixed(1):0;return `<div class="gr"><div class="gl"><b>No. ${esc(p.no)} - ${esc(p.ketua)} &amp; ${esc(p.wakil)}</b><span>${n} suara (${pc}%)</span></div><div class="bg"><div class="fl" style="width:${pc}%"></div></div></div>`}).join('')||'<p>Tambahkan paslon terlebih dahulu.</p>'}<p>Total suara masuk: <b>${s}</b></p></div>`},
@@ -72,7 +72,10 @@ function savePas(){const e=db.paslon.find(p=>p.id==S.edit),o={no:$('#pn').value,
 if(!o.ketua||!o.wakil)return alert('Isi nama ketua dan wakil ketua.');
 if(e){Object.assign(e,o);if(S.foto)e.foto=S.foto}else db.paslon.push({id:Date.now(),foto:S.foto||'',...o});
 S.foto=null;S.edit=null;save();render()}
-function delPas(id){if(confirm('Hapus paslon ini?')){db.paslon=db.paslon.filter(p=>p.id!=id);save();render()}}
+const nSuara=id=>voters().filter(x=>x.pilih===id).length;
+function delPas(id){const n=nSuara(id);if(confirm('Hapus paslon ini?'+(n?`\n\nPaslon ini sudah memperoleh ${n} suara. Suara tersebut tidak akan terhitung lagi di rekap.`:''))){db.paslon=db.paslon.filter(p=>p.id!=id);save();render()}}
+function clrPas(){const n=db.paslon.reduce((a,p)=>a+nSuara(p.id),0);if(confirm('Hapus semua paslon?'+(n?`\n\nTotal ${n} suara yang sudah masuk tidak akan terhitung lagi di rekap.`:''))){db.paslon=[];S.edit=null;save();render()}}
+const pasNama=id=>{const p=db.paslon.find(a=>a.id===id);return p?`No. ${p.no} - ${p.ketua} & ${p.wakil}`:'(paslon telah dihapus)'};
 function saveSet(){const s=db.school;Object.assign(s,{nama:$('#sn').value,kepsek:$('#sk').value,nipKepsek:$('#sp').value,pembina:$('#sb').value,nipPembina:$('#sq').value});
 if(S.logo){s.logo=S.logo;S.logo=null}if($('#ap').value)db.admin.p=$('#ap').value;save();alert('Pengaturan disimpan.');render()}
 function rst(){if(confirm('Hapus semua suara yang sudah masuk?')){voters().forEach(x=>{x.voted=false;x.pilih=null;x.waktu=null});save();render()}}
@@ -81,12 +84,15 @@ function rst(){if(confirm('Hapus semua suara yang sudah masuk?')){voters().forEa
 function dp(t){const L=t=='siswa',d=db[t].filter(x=>(!S.kelas||x.kelas==S.kelas)&&(!S.q||(x.nama+x.id).toLowerCase().includes(S.q.toLowerCase())));
 return `<h2>Data ${L?'Siswa':'Guru/Tendik'}</h2><div class="card bar"><label class="btn">📤 Upload Excel<input hidden type="file" accept=".xlsx,.xls,.csv" onchange="imp(this,'${t}')"></label><button class="ghost" onclick="tpl('${t}')">Unduh template</button>${L?ksel():''}
 <input placeholder="Cari nama atau ${L?'NIS':'NIP'}, lalu tekan Enter" value="${esc(S.q)}" onchange="S.q=this.value;render()"><button class="ghost" onclick="clr('${t}')">Hapus semua</button></div>
-<div class="card tw"><table><tr><th>No</th><th>${L?'NIS':'NIP'}</th><th>Nama</th>${L?'<th>Kelas</th>':''}<th>Status</th></tr>${d.slice(0,300).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.id)}</td><td>${esc(x.nama)}</td>${L?`<td>${esc(x.kelas)}</td>`:''}<td>${x.voted?'✅ Sudah memilih':'⏳ Belum'}</td></tr>`).join('')||'<tr><td colspan="5">Belum ada data. Upload file Excel untuk memulai.</td></tr>'}</table><small>${d.length} data${d.length>300?' (menampilkan 300 pertama)':''}</small></div>`}
+<div class="card tw"><table><tr><th>No</th><th>${L?'NIS':'NIP'}</th><th>Nama</th>${L?'<th>Kelas</th>':''}<th>Status</th><th>Aksi</th></tr>${d.slice(0,300).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.id)}</td><td>${esc(x.nama)}</td>${L?`<td>${esc(x.kelas)}</td>`:''}<td>${x.voted?'✅ Sudah memilih':'⏳ Belum'}</td><td><button class="ghost del" onclick="delOne('${t}',${esc(JSON.stringify(String(x.id)))})">🗑️ Hapus</button></td></tr>`).join('')||'<tr><td colspan="6">Belum ada data. Upload file Excel untuk memulai.</td></tr>'}</table><small>${d.length} data${d.length>300?' (menampilkan 300 pertama)':''}</small></div>`}
 function imp(el,t){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const w=XLSX.read(r.result,{type:'array'}),rows=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]);let n=0;
 rows.forEach(o=>{const g=k=>{const key=Object.keys(o).find(z=>z.toLowerCase().includes(k));return key?String(o[key]).trim():''};
 const id=g(t=='siswa'?'nis':'nip'),nama=g('nama');if(!id||!nama)return;const d=t=='siswa'?{id,nama,kelas:g('kelas')}:{id,nama},ex=db[t].find(a=>a.id==id);
 if(ex)Object.assign(ex,d);else db[t].push(d);n++});save();alert(n+' data berhasil diimpor.');render()};r.readAsArrayBuffer(f)}
 function tpl(t){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(t=='siswa'?[['NIS','Nama','Kelas'],['1001','Contoh Siswa','X-1']]:[['NIP','Nama'],['198001012005011001','Contoh Guru']]),'Data');XLSX.writeFile(wb,'template_'+t+'.xlsx')}
+function delOne(t,id){const x=db[t].find(a=>String(a.id)==id);if(!x)return;
+if(!confirm(`Hapus data ${x.nama} (${id})?${x.voted?'\n\nPemilih ini sudah memilih, suaranya ikut terhapus dari rekap.':''}`))return;
+db[t]=db[t].filter(a=>String(a.id)!=id);save();render()}
 function clr(t){if(confirm('Hapus semua data?')){db[t]=[];save();render()}}
 
 render();
