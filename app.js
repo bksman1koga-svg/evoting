@@ -22,7 +22,7 @@ function landing(){const t=S.tab;return `<div class="hero"><div class="brand">${
 <h1>E-voting</h1><p>Pemilihan Ketua dan Wakil Ketua secara digital.</p><p class="slogan">Satu Suara, Satu Pilihan, mari bijak memilih, Jangan GOLPUT!!!</p>
 ${t=='hasil'?hasil():`<div class="card login"><div class="tabs">${[['siswa','Siswa'],['guru','Guru/Tendik'],['hasil','Hasil'],['admin','Admin']].map(x=>`<button class="${t==x[0]?'on':''}" onclick="S.tab='${x[0]}';render()">${x[1]}</button>`).join('')}</div>
 ${t=='admin'?`<input id="u" placeholder="Username" autocomplete="username"><input id="pw" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key=='Enter')login()">`:`<input id="u" placeholder="${t=='siswa'?'Masukkan NIS':'Masukkan NIP / ID'}" onkeydown="if(event.key=='Enter')login()">`}
-<button class="btn" onclick="login()">Masuk</button></div>`}</div>`}
+<button class="btn" onclick="login()">Masuk</button><p class="dsg">Designed by:<b>Teacher AKK</b></p></div>`}</div>`}
 const COL=[['#60a5fa','#2563eb'],['#c084fc','#9333ea'],['#34d399','#059669'],['#fbbf24','#f59e0b'],['#f87171','#dc2626'],['#22d3ee','#0891b2']];
 function hasil(){const all=voters(),r=db.paslon.map(p=>({p,n:all.filter(x=>x.pilih===p.id).length})),s=r.reduce((a,b)=>a+b.n,0),mx=Math.max(1,...r.map(x=>x.n));
 return `<div class="card glass hasil"><div class="hh"><div><h2>Hasil Pemilihan</h2><p>Persentase suara setiap pasangan calon</p></div><button class="ghost" onclick="S.tab='siswa';render()">Kembali</button></div>
