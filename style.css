@@ -28,7 +28,11 @@ textarea{min-height:90px}
 .bw{height:230px;width:100%;display:flex;align-items:flex-end;justify-content:center}
 .cb{width:70%;max-width:120px;border-radius:18px 18px 0 0;transition:height .7s}
 .tot{margin-top:1rem!important;text-align:center}
-.hero .brand{margin-bottom:2rem}
+.hero .brand{margin-bottom:1.5rem;flex-direction:column;gap:.8rem;text-align:center}
+.hero .brand .lg{width:clamp(110px,28vw,150px);height:clamp(110px,28vw,150px);font-size:5rem;border-radius:12px;filter:drop-shadow(0 4px 14px rgba(0,0,0,.45))}
+.hero .brand b{font-size:clamp(1.5rem,5vw,2.2rem);font-weight:800;line-height:1.2;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.dsg{margin:.2rem 0 0;padding-top:.7rem;border-top:1px solid var(--line);text-align:center;font-size:.85rem;line-height:1.4;color:var(--mut)!important}
+.dsg b{display:block;color:var(--ink);font-size:.95rem}
 .hero h1{font-size:clamp(2.6rem,8vw,5rem);font-weight:800;letter-spacing:-2px;line-height:1}
 .hero h1 span{color:var(--teal)}
 .hero p{max-width:520px;color:#b9c8e6}
