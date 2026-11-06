@@ -2,7 +2,7 @@
 const K='evote_osis_v1';
 const def={school:{nama:'SMA Negeri 1 Kota Gajah',logo:'',kepsek:'',nipKepsek:'',pembina:'',nipPembina:''},paslon:[],siswa:[],guru:[],admin:{u:'admin',p:'admin123'}};
 let db=JSON.parse(localStorage.getItem(K)||'null')||def;
-let S={role:null,user:null,page:'dash',tab:'siswa',kelas:'',q:'',rk:'siswa',edit:null,foto:null,logo:null};
+let S={add:null,role:null,user:null,page:'dash',tab:'siswa',kelas:'',q:'',rk:'siswa',edit:null,foto:null,logo:null};
 const $=s=>document.querySelector(s);
 const save=()=>{try{localStorage.setItem(K,JSON.stringify(db))}catch(e){alert('Penyimpanan penuh. Gunakan gambar yang lebih kecil.')}};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -42,7 +42,7 @@ x.voted=true;x.pilih=id;x.waktu=Date.now();save();render()}
 
 /* ---------- Admin ---------- */
 const MENU=[['dash','📊','Dashboard'],['paslon','🧑‍🤝‍🧑','Data Paslon'],['siswa','🎓','Data Siswa'],['guru','👩‍🏫','Data Guru'],['riwayat','🕘','Riwayat Pemilih'],['grafik','📈','Grafik'],['set','⚙️','Pengaturan']];
-function admin(){return `<nav class="side"><div class="brand">${logo()}<b>E-voting</b></div>${MENU.map(m=>`<a class="${S.page==m[0]?'on':''}" onclick="S.page='${m[0]}';S.q='';S.kelas='';S.edit=null;render()">${m[1]} ${m[2]}</a>`).join('')}<a onclick="out()">🚪 Keluar</a><div class="credit">Designed by:<b>Akhmad Khafidz K., S.Pd., Gr.</b>Developed by:<b>Claude</b></div></nav><main>${PAGES[S.page]()}</main>`}
+function admin(){return `<nav class="side"><div class="brand">${logo()}<b>E-voting</b></div>${MENU.map(m=>`<a class="${S.page==m[0]?'on':''}" onclick="S.page='${m[0]}';S.q='';S.kelas='';S.edit=null;S.add=null;render()">${m[1]} ${m[2]}</a>`).join('')}<a onclick="out()">🚪 Keluar</a><div class="credit">Designed by:<b>Akhmad Khafidz K., S.Pd., Gr.</b>Developed by:<b>Claude</b></div></nav><main>${PAGES[S.page]()}</main>`}
 
 const PAGES={
 dash(){const a=[...db.siswa.map(x=>({...x,t:'Siswa'})),...db.guru.map(x=>({...x,t:'Guru'}))],v=a.filter(x=>x.voted),rec=[...v].sort((a,b)=>b.waktu-a.waktu).slice(0,8);
@@ -82,14 +82,19 @@ function rst(){if(confirm('Hapus semua suara yang sudah masuk?')){voters().forEa
 
 /* ---------- Data siswa & guru ---------- */
 function dp(t){const L=t=='siswa',d=db[t].filter(x=>(!S.kelas||x.kelas==S.kelas)&&(!S.q||(x.nama+x.id).toLowerCase().includes(S.q.toLowerCase())));
-return `<h2>Data ${L?'Siswa':'Guru/Tendik'}</h2><div class="card bar"><label class="btn">📤 Upload Excel<input hidden type="file" accept=".xlsx,.xls,.csv" onchange="imp(this,'${t}')"></label><button class="ghost" onclick="tpl('${t}')">Unduh template</button>${L?ksel():''}
+return `<h2>Data ${L?'Siswa':'Guru/Tendik'}</h2><div class="card bar"><label class="btn">📤 Upload Excel<input hidden type="file" accept=".xlsx,.xls,.csv" onchange="imp(this,'${t}')"></label><button class="ghost" onclick="tpl('${t}')">Unduh template</button><button class="btn" onclick="S.add=S.add=='${t}'?null:'${t}';render()">➕ Tambah manual</button>${L?ksel():''}
 <input placeholder="Cari nama atau ${L?'NIS':'NIP'}, lalu tekan Enter" value="${esc(S.q)}" onchange="S.q=this.value;render()"><button class="ghost" onclick="clr('${t}')">Hapus semua</button></div>
-<div class="card tw"><table><tr><th>No</th><th>${L?'NIS':'NIP'}</th><th>Nama</th>${L?'<th>Kelas</th>':''}<th>Status</th><th>Aksi</th></tr>${d.slice(0,300).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.id)}</td><td>${esc(x.nama)}</td>${L?`<td>${esc(x.kelas)}</td>`:''}<td>${x.voted?'✅ Sudah memilih':'⏳ Belum'}</td><td><button class="ghost del" onclick="delOne('${t}',${esc(JSON.stringify(String(x.id)))})">🗑️ Hapus</button></td></tr>`).join('')||'<tr><td colspan="6">Belum ada data. Upload file Excel untuk memulai.</td></tr>'}</table><small>${d.length} data${d.length>300?' (menampilkan 300 pertama)':''}</small></div>`}
+${S.add==t?`<div class="card"><h3>Tambah ${L?'Siswa':'Guru/Tendik'} Manual</h3><div class="bar"><input id="ai" placeholder="${L?'NIS':'NIP'}" autocomplete="off"><input id="an" placeholder="Nama lengkap" autocomplete="off">${L?`<input id="ak" list="kl" placeholder="Kelas (mis. X-1)" autocomplete="off"><datalist id="kl">${kelasList().map(k=>`<option value="${esc(k)}">`).join('')}</datalist>`:''}<button class="btn" onclick="addOne('${t}')">💾 Simpan</button><button class="ghost" onclick="S.add=null;render()">Batal</button></div></div>`:''}
+<div class="card tw"><table><tr><th>No</th><th>${L?'NIS':'NIP'}</th><th>Nama</th>${L?'<th>Kelas</th>':''}<th>Status</th><th>Aksi</th></tr>${d.slice(0,300).map((x,i)=>`<tr><td>${i+1}</td><td>${esc(x.id)}</td><td>${esc(x.nama)}</td>${L?`<td>${esc(x.kelas)}</td>`:''}<td>${x.voted?'✅ Sudah memilih':'⏳ Belum'}</td><td><button class="ghost del" onclick="delOne('${t}',${esc(JSON.stringify(String(x.id)))})">🗑️ Hapus</button></td></tr>`).join('')||'<tr><td colspan="6">Belum ada data. Upload file Excel atau tambah manual untuk memulai.</td></tr>'}</table><small>${d.length} data${d.length>300?' (menampilkan 300 pertama)':''}</small></div>`}
 function imp(el,t){const f=el.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const w=XLSX.read(r.result,{type:'array'}),rows=XLSX.utils.sheet_to_json(w.Sheets[w.SheetNames[0]]);let n=0;
 rows.forEach(o=>{const g=k=>{const key=Object.keys(o).find(z=>z.toLowerCase().includes(k));return key?String(o[key]).trim():''};
 const id=g(t=='siswa'?'nis':'nip'),nama=g('nama');if(!id||!nama)return;const d=t=='siswa'?{id,nama,kelas:g('kelas')}:{id,nama},ex=db[t].find(a=>a.id==id);
 if(ex)Object.assign(ex,d);else db[t].push(d);n++});save();alert(n+' data berhasil diimpor.');render()};r.readAsArrayBuffer(f)}
 function tpl(t){const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(t=='siswa'?[['NIS','Nama','Kelas'],['1001','Contoh Siswa','X-1']]:[['NIP','Nama'],['198001012005011001','Contoh Guru']]),'Data');XLSX.writeFile(wb,'template_'+t+'.xlsx')}
+function addOne(t){const L=t=='siswa',v=i=>(document.getElementById(i)?.value||'').trim(),id=v('ai'),nama=v('an'),kelas=v('ak');
+if(!id||!nama||(L&&!kelas)){alert(`${L?'NIS':'NIP'}, nama${L?' dan kelas':''} wajib diisi.`);return}
+const ex=db[t].find(a=>String(a.id)==id);if(ex){alert(`${L?'NIS':'NIP'} ${id} sudah terdaftar atas nama ${ex.nama}.`);return}
+db[t].push(L?{id,nama,kelas}:{id,nama});save();S.add=null;alert(`${nama} berhasil ditambahkan.`);render()}
 function delOne(t,id){const x=db[t].find(a=>String(a.id)==id);if(!x)return;
 if(!confirm(`Hapus data ${x.nama} (${id})?${x.voted?'\n\nPemilih ini sudah memilih, suaranya ikut terhapus dari rekap.':''}`))return;
 db[t]=db[t].filter(a=>String(a.id)!=id);save();render()}
