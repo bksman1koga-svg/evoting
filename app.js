@@ -1,7 +1,9 @@
 /* E-voting - data disimpan di database Neon lewat API Vercel */
 const def={school:{nama:'SMA Negeri 1 Kota Gajah',logo:'',kepsek:'',nipKepsek:'',pembina:'',nipPembina:''},paslon:[],siswa:[],guru:[]};
 let db=JSON.parse(JSON.stringify(def)),USER='',PASS='';
-const api=async(u,b,h={})=>{let r;try{r=await fetch(u,{method:'POST',headers:{'content-type':'application/json',...h},body:JSON.stringify(b)})}catch(e){throw new Error('Tidak bisa terhubung ke server. Periksa internet Anda.')}
+/* Jika dibuka dari github.io, server tetap memakai alamat Vercel di bawah ini. Ubah jika alamat Vercel Anda berbeda. */
+const API_BASE=location.hostname.endsWith('github.io')?'https://evotingsmansaga.vercel.app':'';
+const api=async(u,b,h={})=>{let r;try{r=await fetch(API_BASE+u,{method:'POST',headers:{'content-type':'application/json',...h},body:JSON.stringify(b)})}catch(e){throw new Error('Tidak bisa terhubung ke server. Periksa internet Anda.')}
 const j=await r.json().catch(()=>null);if(!j)throw new Error(r.status==404?'Server database tidak ditemukan (404). Pastikan folder api ikut di-deploy di Vercel.':'Server error (kode '+r.status+'). Buka /api/ping untuk cek database.');if(!r.ok)throw new Error(j.error||'Terjadi kesalahan');return j};
 const A=(action,d={})=>api('/api/admin',{action,...d},{'x-admin-user':USER,'x-admin-pass':PASS});
 async function ld(){db=await A('load')}
